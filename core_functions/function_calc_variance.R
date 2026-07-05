@@ -1,0 +1,190 @@
+## Calculate Variance Function
+
+calculate_variance <- function(df,   ## data frame with y variables
+                               strata, ## data frame with strata variable
+                               vars,   ## vector of column names for y variables
+                               n,  ## sample allocation across strata 
+                               type,
+                               type_name, 
+                               seed)      ## objective function (determinant of var-cov, total variance, sum of squares)
+{
+  df$strata <- strata
+  dfg <- df %>%
+    dplyr::group_by(strata) %>%
+    dplyr::summarise(N_h = n(), .groups = "drop")
+
+  N <- dfg$N_h 
+  W <- dfg$N_h / sum(N) ## population proportion of stratum
+  L <- nrow(dfg) ## number of strata
+  k <- length(vars) ## number of variables
+  ssize <- sum(n)
+  pop_tot <- sum(N)
+  
+  v_stk <- numeric()
+  v_srsk <- numeric()
+  deff_y <- numeric()
+  v_stb <- numeric()
+  v_srsb <- numeric()
+  deff_b <- numeric()
+  v_stg <- numeric()
+  v_srsg <- numeric()
+  deff_g <- numeric()
+  cv_k <- numeric()
+  cv_b <- numeric()
+  cv_g <- numeric()
+  
+  for (j in 1:k) {
+    
+    ## MEAN
+    if (type_name[j] == "numeric") {
+      Y = df[[vars[j]]]
+      
+      ## SRS
+      Y_m = as.matrix(mean(Y)) ## population mean
+      V = stats::var(Y) ## population SD 
+      
+      #* Design based SRS variance:
+      v_srs = V/pop_tot*((pop_tot-ssize)/pop_tot)
+      
+      ## Stratified sample
+      df_st <- df %>%
+        dplyr::mutate(Y_tmp = df[[vars[j]]]) %>%
+        dplyr::group_by(strata) %>%
+        dplyr::summarise(
+          var = var(Y_tmp, na.rm = TRUE),
+          ybar = mean(Y_tmp, na.rm = TRUE),
+          .groups = "drop"
+        ) ## stratified SD (population)
+      
+      
+      Vh <- df_st$var
+      v_st <- numeric()
+      
+      #* Design based stratified sample variance:
+      for (h in 1:L) {
+        v_st[h] <- (W[h]^2 * (1 - (n[h] / N[h])) * (Vh[h] / n[h])) ## Kozak (5)
+      }
+      
+      v_st <- sum(v_st)
+      deff = v_st/v_srs
+      
+      #* Design based stratified sample mean:
+      ybar <- df_st$ybar
+      ybar_st <- sum(W * ybar)
+      
+      #* Design based stratified sample CV:
+      cv_st = sqrt(v_st)/ybar_st
+      
+      ## Collect output of interest:
+      cv_k <- rbind(cv_k, cv_st)
+      v_stk <- rbind(v_stk, v_st)
+      v_srsk <- rbind(v_srsk, v_srs)
+      deff_y = rbind(deff_y, deff)
+    }
+    
+    ## PROPORTION
+    if (type_name[j] == "symm") {
+      B = df[[vars[j]]]
+      
+      ## SRS
+      A = sum(B)
+      P = A/pop_tot ## population proportion
+      
+      #* Design based SRS variance:
+      v_srs = (P*(1-P)/ssize)*((pop_tot-ssize)/(pop_tot-1))
+      
+      ## Stratified sample
+      df_st <- df %>%
+        dplyr::mutate(B_tmp = df[[vars[j]]]) %>%
+        dplyr::group_by(strata) %>%
+        dplyr::summarise(
+        sum = sum(B_tmp, na.rm = TRUE),
+          .groups = "drop"
+        ) ## stratified SD
+      
+      
+      Ph <- df_st$sum/N
+      v_st <- numeric()
+      
+      #* Design based stratified sample variance:
+      for (h in 1:L) {
+        v_st[h] <- (1/pop_tot)^2*(N[h]^2*(N[h]-n[h])/(N[h]-1))*((Ph[h]*(1-Ph[h]))/n[h])
+      }
+      
+      v_st <- sum(v_st)
+      deff = v_st/v_srs
+      
+      #* Design based stratified sample proportion:
+      phat_st = sum(W*Ph)
+      
+      #* Design based stratified sample CV:
+      cv_st <- sqrt(v_st) / phat_st
+      
+      # Collect output of interest:
+      cv_b <- rbind(cv_b, cv_st)
+      v_stb <- rbind(v_stb, v_st)
+      v_srsb <- rbind(v_srsb, v_srs)
+      deff_b = rbind(deff_b, deff)
+    }
+    
+    ## TOTAL
+    if (type_name[j] == "factor") {
+      G = df[[vars[j]]]
+      
+      ## SRS
+      A = sum(G)
+      P = A/pop_tot ## population proportion
+      
+      #* Design based SRS variance:
+      v_srs = pop_tot^2*(P*(1-P)/ssize)*((pop_tot-ssize)/(pop_tot-1))
+      
+      ## Stratified sample
+      df_st <- df %>%
+        dplyr::mutate(G_tmp = df[[vars[j]]]) %>%
+        dplyr::group_by(strata) %>%
+        dplyr::summarise(
+        sum = sum(G_tmp, na.rm = TRUE),
+          .groups = "drop"
+        ) ## stratified SD
+      
+      
+      Ph <- df_st$sum/N
+      v_st <- numeric()
+      
+      #* Design based stratified sample variance:
+      for (h in 1:L) {
+        v_st[h] <- (1/pop_tot)^2*(N[h]^2*(N[h]-n[h])/(N[h]-1))*((Ph[h]*(1-Ph[h]))/n[h])
+      }
+      
+      v_st <- pop_tot^2*sum(v_st)
+      deff = v_st/v_srs
+      
+      #* Design based stratified sample category total:
+      that_st = sum(N*Ph)
+      
+      #* Design based stratified sample category CV:
+      cv_st = sqrt(v_st)/that_st
+      
+      # Collect output of interest:
+      cv_g = rbind(cv_g, cv_st)
+      v_stg <- rbind(v_stg, v_st)
+      v_srsg <- rbind(v_srsg, v_srs)
+      deff_g = rbind(deff_g, deff)
+    }
+      
+    }
+ 
+  deff_tot <- sum(deff_y) + sum(deff_b) + sum(deff_g)
+  
+  return(list(
+    cv_k = cv_k,
+    cv_b = cv_b,
+    cv_g = cv_g,
+    deff_y   = deff_y,
+    deff_b   = deff_b,
+    deff_g   = deff_g,
+    deff = deff_tot
+  ))
+}   
+  
+  
