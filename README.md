@@ -45,6 +45,12 @@ Key functions used to perform the methods:
 
 ---
 
+## Working Folders
+
+- **`RAW26`** — Once results are run, they should be copied to the RAW26 folder [not uploaded here due to space constraints], where key results are extracted to *WIP26* using the extraction functions in this folder. 
+- **`WIP26`** — Contains extracted results from *RAW26*. 
+---
+
 ## Key Note
 
 All code was run on the UCT HPC cluster, parallelised across 40 cores to get a sense of variability across 40 runs. To reproduce locally, this code can be minimally edited by adjusting the number of cores and parallel runs (`iter`).
