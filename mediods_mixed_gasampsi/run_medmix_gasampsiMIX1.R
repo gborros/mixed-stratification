@@ -32,7 +32,8 @@ datasets <- c("d_mix1")
 dfs <- list(d_mix1)
 type <- list(type1)
 type_name <- list(type_name1)
-num_strata = 15
+
+for (num_strata in c(3, 4, 5, 6)) {
 ssize = 500
 
 for (dta in 1:length(datasets)) {
@@ -105,7 +106,6 @@ for (dta in 1:length(datasets)) {
   store_proctime_all <- do.call(rbind, lapply(results, `[[`, "proc_time"))
 }
 # ----------------------- Store Results --------------------------
-stopCluster(cl)
 
 store <- list(
   df,
@@ -126,3 +126,6 @@ store <- list(
 filename = paste0("OUTPUT/medmix_ga_", datasets[dta], "_", num_strata, "strata", "_", ssize, "n", "_results.Rdata")
 
 save(store, file = filename)
+}
+
+stopCluster(cl)

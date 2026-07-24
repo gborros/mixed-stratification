@@ -23,7 +23,7 @@ param_grid <- expand.grid(
   stringsAsFactors = FALSE
 )
 
-ncores <- min(40, nrow(param_grid)) # don't request more workers than tasks
+ncores <- min(16, nrow(param_grid)) # don't request more workers than tasks
 
 # ------------------------ Cluster setup -----------------------------------
 # PSOCK cluster: each worker is a fresh R process, so packages and sourced
