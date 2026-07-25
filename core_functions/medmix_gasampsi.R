@@ -24,9 +24,9 @@ init_pop_gga <- function(pop_size, num_strata, n_obs, ssize, seed, df, type, typ
     candidate <- as.numeric(result$clustering)
     
     ##########* Sample Allocation *########
-    length <- numeric()
+    strata_size <- numeric()
     for (h in 1:num_strata){
-      length <- rbind(length, length(candidate[candidate==h]))
+      strata_size <- rbind(strata_size, length(candidate[candidate==h]))
     }
     
     ## Random sample allocation for initialisation into GGA
@@ -36,13 +36,11 @@ init_pop_gga <- function(pop_size, num_strata, n_obs, ssize, seed, df, type, typ
     n <- floor(samp_prop/sum_samp*ssize)
     
     if (sum(n)>ssize) {
-      N=sum(n)
-      n[which.min(N-n)] <- n[which.min(N-n)] - (sum(n)-ssize) 
+      n[which.min(n)] <- n[which.min(n)] - (sum(n)-ssize) 
     }
     
     if (sum(n)<ssize) {
-      N=sum(n)
-      n[which.max(N-n)] <- n[which.max(N-n)] + (ssize-sum(n)) 
+      n[which.max(n)] <- n[which.max(n)] + (ssize-sum(n)) 
     }
     
     for (h in 1:num_strata){
@@ -53,22 +51,20 @@ init_pop_gga <- function(pop_size, num_strata, n_obs, ssize, seed, df, type, typ
     }
     
     for (h in 1:num_strata){
-      if (n[h] > length[h]) { ## ensure sample is smaller than pop
-        n[h] = length[h]
+      if (n[h] > strata_size[h]) { ## ensure sample is smaller than pop
+        n[h] = strata_size[h]
         n[which.max(n)] <- ssize-sum(n)+n[which.max(n)]
       }
     }
     
     N=sum(n)
-    z <- which.max(N)
-    n[z] <- n[z] + (ssize-sum(n)) ## allocate any remaining sample to largest stratum
+    z <- which.max(n)
+    n[z] <- n[z] + (ssize-sum(n)) ## allocate any remaining sample
     
     ## Constraint check
     c1 <- c()
     for (h in 1:num_strata){
-      c1[h] <- n[h] <= length[h] & 2 <= n[h]}
-    
-    n <- n
+      c1[h] <- n[h] <= strata_size[h] & 2 <= n[h]}
     
     # Check groups: must have two observations per group and cover all groups
     group_counts <- table(candidate)

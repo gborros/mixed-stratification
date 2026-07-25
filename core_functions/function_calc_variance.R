@@ -1,5 +1,8 @@
 ## Calculate Variance Function
 
+### Note: CV has been adjusted in this function to remove the FPC. 
+### All other measures (variance, design effect) include the FPC.
+
 calculate_variance <- function(df,   ## data frame with y variables
                                strata, ## data frame with strata variable
                                vars,   ## vector of column names for y variables
@@ -44,18 +47,17 @@ calculate_variance <- function(df,   ## data frame with y variables
       V = stats::var(Y) ## population SD 
       
       #* Design based SRS variance:
-      v_srs = V/pop_tot*((pop_tot-ssize)/pop_tot)
+      v_srs = V/ssize*((pop_tot-ssize)/pop_tot)
       
-      ## Stratified sample
       df_st <- df %>%
         dplyr::mutate(Y_tmp = df[[vars[j]]]) %>%
         dplyr::group_by(strata) %>%
         dplyr::summarise(
-          var = var(Y_tmp, na.rm = TRUE),
+          N_h = dplyr::n(),
+          var = ifelse(N_h == 1, 0, var(Y_tmp, na.rm = TRUE)),
           ybar = mean(Y_tmp, na.rm = TRUE),
           .groups = "drop"
-        ) ## stratified SD (population)
-      
+        ) ## stratified SD (population); treating any singletons as 0 variance
       
       Vh <- df_st$var
       v_st <- numeric()
@@ -72,8 +74,16 @@ calculate_variance <- function(df,   ## data frame with y variables
       ybar <- df_st$ybar
       ybar_st <- sum(W * ybar)
       
-      #* Design based stratified sample CV:
-      cv_st = sqrt(v_st)/ybar_st
+      v_st_nofpc <- numeric()
+      #* Design based stratified sample variance with NOFPC - for comparison to SamplingStrata:
+      for (h in 1:L) {
+        v_st_nofpc[h] <- (W[h]^2 * (Vh[h] / n[h])) ## Kozak (5)
+      }
+      
+      v_st_nofpc <- sum(v_st_nofpc) ## sum over strata
+      
+      #* Design based stratified sample CV (NO FPC):
+      cv_st = sqrt(v_st_nofpc)/ybar_st
       
       ## Collect output of interest:
       cv_k <- rbind(cv_k, cv_st)
@@ -117,8 +127,16 @@ calculate_variance <- function(df,   ## data frame with y variables
       #* Design based stratified sample proportion:
       phat_st = sum(W*Ph)
       
+      v_st_nofpc <- numeric()
+      #* Design based stratified sample variance with NO FPC (for comparison to SamplingStrata):
+      for (h in 1:L) {
+        v_st_nofpc[h] <- (1/pop_tot)^2 * N[h]^2 * ((Ph[h]*(1-Ph[h]))/n[h])
+      }
+
+      v_st_nofpc <- sum(v_st_nofpc)
+      
       #* Design based stratified sample CV:
-      cv_st <- sqrt(v_st) / phat_st
+      cv_st <- sqrt(v_st_nofpc) / phat_st
       
       # Collect output of interest:
       cv_b <- rbind(cv_b, cv_st)
@@ -162,8 +180,16 @@ calculate_variance <- function(df,   ## data frame with y variables
       #* Design based stratified sample category total:
       that_st = sum(N*Ph)
       
+      v_st_nofpc <- numeric()
+      #* Design based stratified sample variance with NO FPC (for comparison to SamplingStrata):
+      for (h in 1:L) {
+        v_st_nofpc[h] <- (1/pop_tot)^2 * N[h]^2 * ((Ph[h]*(1-Ph[h]))/n[h])
+      }
+      
+      v_st_nofpc <- pop_tot^2*sum(v_st_nofpc)
+      
       #* Design based stratified sample category CV:
-      cv_st = sqrt(v_st)/that_st
+      cv_st = sqrt(v_st_nofpc)/that_st
       
       # Collect output of interest:
       cv_g = rbind(cv_g, cv_st)
