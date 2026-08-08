@@ -111,6 +111,9 @@ evaluate_fitness_gga <- function(df, population, vars, ssize, type, type_name, s
   cv_y  <- lapply(results, function(x) x$cv_k)
   cv_b  <- lapply(results, function(x) x$cv_b)
   cv_g  <- lapply(results, function(x) x$cv_g)
+  cv_y_fpc  <- lapply(results, function(x) x$cv_k_fpc)
+  cv_b_fpc  <- lapply(results, function(x) x$cv_b_fpc)
+  cv_g_fpc  <- lapply(results, function(x) x$cv_g_fpc)
   
   return(list(
     fitness = -fitness,
@@ -120,7 +123,10 @@ evaluate_fitness_gga <- function(df, population, vars, ssize, type, type_name, s
     deff_g  = deff_g,
     cv_y = cv_y,
     cv_b = cv_b,
-    cv_g = cv_g
+    cv_g = cv_g,
+    cv_y_fpc = cv_y_fpc,
+    cv_b_fpc = cv_b_fpc,
+    cv_g_fpc = cv_g_fpc
   ))
 }
 
@@ -485,7 +491,11 @@ run_medmix_gasampsi <- function(seed, df, pop_size, num_strata, num_generations,
   cv_y <- fit$cv_y
   cv_b <- fit$cv_b
   cv_g <- fit$cv_g
+  cv_y_fpc <- fit$cv_y_fpc
+  cv_b_fpc <- fit$cv_b_fpc
+  cv_g_fpc <- fit$cv_g_fpc
   return(list(best_solution = population[[best_idx]], best_fitness = fitness[best_idx], best_n = n[[best_idx]], fitness_log = fitness_log, best_deff_y = deff_y[best_idx], best_deff_b = deff_b[best_idx], best_deff_g = deff_g[best_idx],
-              best_cv_y = cv_y[best_idx], best_cv_b = cv_b[best_idx], best_cv_g = cv_g[best_idx]))
+              best_cv_y = cv_y[best_idx], best_cv_b = cv_b[best_idx], best_cv_g = cv_g[best_idx],
+              best_cv_y_fpc = cv_y_fpc[best_idx], best_cv_b_fpc = cv_b_fpc[best_idx], best_cv_g_fpc = cv_g_fpc[best_idx]))
 }
 

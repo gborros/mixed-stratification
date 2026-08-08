@@ -1,6 +1,6 @@
 ## Calculate Variance Function
 
-### Note: CV has been adjusted in this function to remove the FPC. 
+### Note: CV has been adjusted to include versions with and without FPC
 ### All other measures (variance, design effect) include the FPC.
 
 calculate_variance <- function(df,   ## data frame with y variables
@@ -35,6 +35,9 @@ calculate_variance <- function(df,   ## data frame with y variables
   cv_k <- numeric()
   cv_b <- numeric()
   cv_g <- numeric()
+  cv_k_fpc <- numeric()
+  cv_b_fpc <- numeric()
+  cv_g_fpc <- numeric()
   
   for (j in 1:k) {
     
@@ -85,8 +88,12 @@ calculate_variance <- function(df,   ## data frame with y variables
       #* Design based stratified sample CV (NO FPC):
       cv_st = sqrt(v_st_nofpc)/ybar_st
       
+      #* Design based stratified sample CV (WITH FPC):
+      cv_st_fpc = sqrt(v_st)/ybar_st
+      
       ## Collect output of interest:
       cv_k <- rbind(cv_k, cv_st)
+      cv_k_fpc <- rbind(cv_k_fpc, cv_st_fpc)
       v_stk <- rbind(v_stk, v_st)
       v_srsk <- rbind(v_srsk, v_srs)
       deff_y = rbind(deff_y, deff)
@@ -138,8 +145,12 @@ calculate_variance <- function(df,   ## data frame with y variables
       #* Design based stratified sample CV:
       cv_st <- sqrt(v_st_nofpc) / phat_st
       
+      #* Design based stratified sample CV (WITH FPC):
+      cv_st_fpc = sqrt(v_st)/phat_st
+      
       # Collect output of interest:
       cv_b <- rbind(cv_b, cv_st)
+      cv_b_fpc <- rbind(cv_b_fpc, cv_st_fpc)
       v_stb <- rbind(v_stb, v_st)
       v_srsb <- rbind(v_srsb, v_srs)
       deff_b = rbind(deff_b, deff)
@@ -191,8 +202,12 @@ calculate_variance <- function(df,   ## data frame with y variables
       #* Design based stratified sample category CV:
       cv_st = sqrt(v_st_nofpc)/that_st
       
+      #* Design based stratified sample CV (WITH FPC):
+      cv_st_fpc = sqrt(v_st)/that_st
+      
       # Collect output of interest:
       cv_g = rbind(cv_g, cv_st)
+      cv_g_fpc <- rbind(cv_g_fpc, cv_st_fpc)
       v_stg <- rbind(v_stg, v_st)
       v_srsg <- rbind(v_srsg, v_srs)
       deff_g = rbind(deff_g, deff)
@@ -206,6 +221,9 @@ calculate_variance <- function(df,   ## data frame with y variables
     cv_k = cv_k,
     cv_b = cv_b,
     cv_g = cv_g,
+    cv_k_fpc = cv_k_fpc,
+    cv_b_fpc = cv_b_fpc,
+    cv_g_fpc = cv_g_fpc,
     deff_y   = deff_y,
     deff_b   = deff_b,
     deff_g   = deff_g,
