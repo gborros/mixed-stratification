@@ -1,5 +1,3 @@
-## medmix_ga_atomic
-
 ## Run File - Parallel version across seed grid (10 runs)
 library(dplyr)
 library(haven)
@@ -19,6 +17,7 @@ results <- foreach(seed = 1:10,
                      
                      source("core_functions/function_calc_variance.R")
                      source("core_functions/medmix_gasampsi.R")
+                     
                      #------------------------ Data ---------------------------------
                      load("multivar_datasets/ghs_2024_mixed.RData")
                      ghs <- as.data.frame(df)
@@ -43,7 +42,7 @@ results <- foreach(seed = 1:10,
                      
                      #------------------------ Load seed-specific SamplingStrata output -------
                      filename_in <- paste0(
-                       "OUTPUT/ss_ghs_atomic1_", "seed", seed, "_results_LOCALTEST.Rdata"
+                       "OUTPUT/bethel_ghs_atomic1_", "seed", seed, "_results_LOCALTEST.Rdata"
                      )
                      load(filename_in)   # brings in `store` for this seed
                      
@@ -104,7 +103,7 @@ results <- foreach(seed = 1:10,
                      )
                      
                      filename_out <- paste0(
-                       "OUTPUT/medmix_ga_atomic_", "seed", seed, "_results_LOCALTEST.Rdata"
+                       "OUTPUT/medmix_ga_bethel_atomic_", "seed", seed, "_results_LOCALTEST.Rdata"
                      )
                      save(store_out, file = filename_out)
                      

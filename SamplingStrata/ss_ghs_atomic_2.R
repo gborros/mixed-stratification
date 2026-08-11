@@ -35,7 +35,10 @@ ghs$head_age <- as.integer(ghs$head_age)
 ghs$hwl_status <- as.integer(ghs$hwl_status == 5 | ghs$hwl_status == 6) ## wellbeing status 5 or 6
 ghs$geotype <- as.integer(ghs$geotype == 1) ## urban
 
+ghs <- ghs[,-5]
+
 ## BIN continuous vars:
+set.seed(1234)
 ghs$fin_reqinc_cat <- var.bin(ghs$fin_reqinc, 15)
 ghs$head_age_cat <- var.bin(ghs$head_age, 15)
 
@@ -180,6 +183,9 @@ results_list <- foreach(
       cv_y = fitness$cv_k,
       cv_b = fitness$cv_b,
       cv_g = fitness$cv_g,
+      cv_y_fpc = fitness$cv_k_fpc,
+      cv_b_fpc = fitness$cv_b_fpc,
+      cv_g_fpc = fitness$cv_g_fpc,
       proc_time = proc_time,
       used_initial_solution = TRUE
     )

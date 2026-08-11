@@ -216,6 +216,8 @@ calculate_variance <- function(df,   ## data frame with y variables
     }
  
   deff_tot <- sum(deff_y) + sum(deff_b) + sum(deff_g)
+  cv_tot <- sum(cv_k) + sum(cv_b) + sum(cv_g)
+  cv_tot_fpc <- sum(cv_k_fpc) + sum(cv_b_fpc) + sum(cv_g_fpc)
   
   return(list(
     cv_k = cv_k,
@@ -227,7 +229,9 @@ calculate_variance <- function(df,   ## data frame with y variables
     deff_y   = deff_y,
     deff_b   = deff_b,
     deff_g   = deff_g,
-    deff = deff_tot
+    deff = deff_tot,
+    cv_tot = cv_tot,
+    cv_tot_fpc = cv_tot_fpc
   ))
 }   
   

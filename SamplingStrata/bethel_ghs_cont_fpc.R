@@ -1,4 +1,4 @@
-## BETHEL GHS ATOMIC -- 10 SEEDS IN PARALLEL, USES MEDMIX-SUGGESTED STRATA
+## BETHEL GHS CONTINUOUS FPC
 
 library(dplyr)
 library(haven)
@@ -15,32 +15,20 @@ source("core_functions/function_calc_variance.R")
 seeds <- 1:10 # <-- 10 seeds run in parallel
 
 #------------------------ Data (seed-independent, built ONCE) ---------------
-cat(">> Loading GHS data...\n")
 load("multivar_datasets/ghs_2024_mixed.RData")
 ghs <- as.data.frame(df)
-cat(sprintf("   Raw dims: %d rows x %d cols\n", nrow(ghs), ncol(ghs)))
-
 ghs <- ghs[ghs$fin_reqinc != 9999999, ]
-cat(sprintf("   After dropping fin_reqinc == 9999999: %d rows\n", nrow(ghs)))
-
 ghs$fin_reqinc <- as.numeric(ghs$fin_reqinc)
 ghs <- ghs[, -4]
 ghs <- ghs[, -3]
 ghs <- ghs[, -3]
-ghs <- ghs[,-5]
-cat(sprintf("   After column drops: %d cols -> %s\n", ncol(ghs), paste(colnames(ghs), collapse = ", ")))
-
-set.seed(1234) ## set seed for consistent binning
-ghs$fin_reqinc_cat <- var.bin(ghs$fin_reqinc, 15)
 ghs$hwl_status <- as.factor(ghs$hwl_status)
 ghs$geotype <- as.factor(ghs$geotype)
 ghs$head_age <- as.integer(ghs$head_age)
-ghs$head_age_cat <- var.bin(ghs$head_age, 15)
 ghs$hwl_status <- as.integer(ghs$hwl_status == 5 | ghs$hwl_status == 6) ## wellbeing status 5 or 6
 ghs$geotype <- as.integer(ghs$geotype == 1) ## urban
 
-cat("   Post-recode summary:\n")
-print(summary(ghs))
+ghs <- ghs[,-5]
 
 ## Inputs for local functions:
 type1 <- list(numeric = 1, numeric = 2, symm = 3, factor = 4)
@@ -61,28 +49,26 @@ for (z in 1:nvars) {
   cfs[z] <- paste0(cf)
 }
 
-colnames(sf) <- c(vars, "X1_cat", "X2_cat")
+colnames(sf) <- c(vars)
 
 sf$id <- 1:nrow(sf) ## adding identifier
 sf$dom <- 1 ## adding domain
 
-cat("\n>> Building sampling frame with buildFrameDF()...\n")
+## Make sample frame for SamplingStrata (seed-independent -- built once):
 frame3 <- buildFrameDF(
   df = sf,
   id = "id",
-  X = c("X1_cat", "X2_cat", "X3", "X4"),
+  X = c("X1", "X2", "X3", "X4"),
   Y = c("X1", "X2", "X3", "X4"),
   domainvalue = "dom"
 )
-cat(sprintf("   Frame built: %d rows x %d cols\n", nrow(frame3), ncol(frame3)))
-str(frame3)
 
 ndom <- length(unique(sf$dom))
 
 #------------------------ Register parallel backend --------------------------
 n_cores <- 10
 
-cl <- makeCluster(n_cores, outfile = "OUTPUT/parallel_log_bethel_atomic.txt")
+cl <- makeCluster(n_cores, outfile = "OUTPUT/parallel_log_bethel_fpc_continuous.txt")
 registerDoParallel(cl)
 
 #------------------------ Run Bethel allocation across seeds in parallel -------------
@@ -98,14 +84,14 @@ results <- foreach(
   
   ########## LOAD INPUTS FROM MEDMIX (per seed)
   filename_in <- paste0(
-    "OUTPUT/medmix_ga_atomic_", "seed", seed, "_results_LOCALTEST.Rdata"
+    "OUTPUT/medmix_ga_cont_", "seed", seed, "_results_LOCALTEST.Rdata"
   )
   load(filename_in)  # brings in `store_out` for this seed
   
   ssize <- sum(store_out$n)
-  cv_y  <- unlist(store_out$cv_y)
-  cv_b  <- unlist(store_out$cv_b)
-  cv_g  <- unlist(store_out$cv_g)
+  cv_y  <- unlist(store_out$cv_y_fpc)
+  cv_b  <- unlist(store_out$cv_b_fpc)
+  cv_g  <- unlist(store_out$cv_g_fpc)
   cv    <- cbind(t(cv_y), cv_b, cv_g)
   strata <- store_out$strata
   
@@ -171,17 +157,16 @@ results <- foreach(
   
   n_strata_realized <- length(n)
   
-  vars2 <- c("Y1", "Y2", "Y3", "Y4")
   fitness <- calculate_variance(
     df = frame3_seed, frame3_seed$STRATO,
-    vars = vars2, n = n, type = data_type, type_name = data_name, seed = seed
+    vars = vars, n = n, type = data_type, type_name = data_name, seed = seed
   )
   
   # ----------------------- Store Results (per seed) --------------
   store <- list(
     max_clusters       = NA,
     seed               = seed,
-    method             = "bethel (atomic)",
+    method             = "bethel (cont, fpc)",
     nstrat_suggested   = store_out$nstrat,
     n_strata_realized  = n_strata_realized,
     df_sol             = frame3_seed,
@@ -203,7 +188,7 @@ results <- foreach(
   )
   
   filename <- paste0(
-    "OUTPUT/bethel_ghs_atomic1_", "seed", seed, "_results_LOCALTEST.Rdata"
+    "OUTPUT/bethel_ghs_cont1_fpc_", "seed", seed, "_results_LOCALTEST.Rdata"
   )
   save(store, file = filename)
   

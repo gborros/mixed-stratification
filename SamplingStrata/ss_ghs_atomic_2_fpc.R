@@ -1,4 +1,4 @@
-## SS GHS CONTINUOUS -- PARALLELIZED, 10 SEEDS, MEDMIX CVs GIVEN
+## SS GHS ATOMIC LOCAL -- PARALLELIZED, 10 SEEDS, MEDMIX CVs GIVEN
 
 library(foreach)
 library(doParallel)
@@ -11,14 +11,12 @@ library(SamplingStrata)
 source("core_functions/function_calc_variance.R")
 
 # ------------------------ TEST COMBINATION -------------------
-max_clusters <- 15   # <-- upper bound only; KmeansSolution2() picks the best
+max_clusters <- 15   # <-- upper bound only; KmeansSolution() picks the best
 seeds <- 1:10        # <-- 10 seeds, run in parallel
 
 # ------------------------ Cluster setup ------------------------
-dir.create("OUTPUT", showWarnings = FALSE)
-
 n_cores <- 10
-cl <- makeCluster(n_cores, outfile = "OUTPUT/parallel_log_continuous.txt")
+cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 cat(sprintf(">> Registered doParallel cluster with %d workers for %d seeds.\n",
             n_cores, length(seeds)))
@@ -38,6 +36,11 @@ ghs$hwl_status <- as.integer(ghs$hwl_status == 5 | ghs$hwl_status == 6) ## wellb
 ghs$geotype <- as.integer(ghs$geotype == 1) ## urban
 
 ghs <- ghs[,-5]
+
+## BIN continuous vars:
+set.seed(1234)
+ghs$fin_reqinc_cat <- var.bin(ghs$fin_reqinc, 15)
+ghs$head_age_cat <- var.bin(ghs$head_age, 15)
 
 print(summary(ghs))
 
@@ -59,14 +62,14 @@ results_list <- foreach(
     
     ############## LOAD IN PARAMETERS FROM MEDMIX_GA OUTPUT (this seed only)
     filename <- paste0(
-      "OUTPUT/medmix_ga_cont_", "seed", seed, "_results_LOCALTEST.Rdata"
+      "OUTPUT/medmix_ga_atomic_", "seed", seed, "_results_LOCALTEST.Rdata"
     )
-    load(filename)  # brings in `store_out` from the medmix run for this seed
+    load(filename)  # brings in `store` from the medmix run for this seed
     
     ssize <- sum(store_out$n)
-    cv_y <- unlist(store_out$cv_y)
-    cv_b <- unlist(store_out$cv_b)
-    cv_g <- unlist(store_out$cv_g)
+    cv_y <- unlist(store_out$cv_y_fpc)
+    cv_b <- unlist(store_out$cv_b_fpc)
+    cv_g <- unlist(store_out$cv_g_fpc)
     cv <- cbind(t(cv_y), cv_b, cv_g)
     
     df_cv <- as.data.frame(cv)
@@ -88,7 +91,7 @@ results_list <- foreach(
       cfs[z] <- paste0(cf)
     }
     
-    colnames(sf) <- c(vars)
+    colnames(sf) <- c(vars, "X1_cat", "X2_cat")
     colnames(error) <- cfs
     
     sf$id <- 1:nrow(sf) ## adding identifier
@@ -98,7 +101,7 @@ results_list <- foreach(
     frame3 <- buildFrameDF(
       df = sf,
       id = "id",
-      X = c("X1", "X2", "X3", "X4"),
+      X = c("X1_cat", "X2_cat", "X3", "X4"),
       Y = c("X1", "X2", "X3", "X4"),
       domainvalue = "dom"
     )
@@ -111,29 +114,29 @@ results_list <- foreach(
       domainvalue = c(1)
     ))
     
-    #------------------------ KmeansSolution2 initial solution --------------------
+    #------------------------ Build atomic strata (buildStrataDF) ---------------
+    strata_atomic <- buildStrataDF(frame3, progress = TRUE)
+    
+    #------------------------ KmeansSolution initial solution --------------------
     set.seed(seed)
-    kmean <- KmeansSolution2(
-      frame = frame3,
+    kmean <- KmeansSolution(
+      strata = strata_atomic,
       errors = error,
       maxclusters = max_clusters
     )
     
     nstrat <- tapply(kmean$suggestions, kmean$domainvalue, FUN = function(x) length(unique(x)))
     
-    ## Prepare suggestion for optimisation
-    sugg <- prepareSuggestion(kmean, frame3, nstrat)
-    
-    #------------------------ Run continuous GA (single seed, single run) -------
+    #------------------------ Run atomic GA (single seed, single run) -----------
     start.time <- Sys.time()
     proc.time.start <- proc.time()
     
     solution <- optimStrata(
-      method = "continuous",
+      method = "atomic",
       errors = error,
       framesamp = frame3,
       nStrata = nstrat,
-      suggestions = sugg,
+      suggestions = kmean,
       iter = 2000,
       pops = 50,
       elitism_rate = 0.2,
@@ -165,7 +168,8 @@ results_list <- foreach(
     store <- list(
       max_clusters = max_clusters,
       seed = seed,
-      method = "continuous",
+      method = "atomic",
+      n_atomic_strata = nrow(strata_atomic),
       nstrat_suggested = nstrat,
       n_strata_realized = n_strata_realized,
       df_sol = df_sol,
@@ -187,7 +191,7 @@ results_list <- foreach(
     )
     
     outfile <- paste0(
-      "OUTPUT/ss_ghs_cont2_seed", seed, "_results_LOCALTEST.Rdata"
+      "OUTPUT/ss_ghs_atomic2_fpc_seed", seed, "_results_LOCALTEST.Rdata"
     )
     save(store, file = outfile)
     

@@ -15,8 +15,6 @@ max_clusters <- 15   # <-- upper bound only; KmeansSolution2() picks the best
 seeds <- 1:10        # <-- 10 seeds, run in parallel
 
 # ------------------------ Cluster setup ------------------------
-dir.create("OUTPUT", showWarnings = FALSE)
-
 n_cores <- 10
 cl <- makeCluster(n_cores, outfile = "OUTPUT/parallel_log_continuous.txt")
 registerDoParallel(cl)
@@ -64,9 +62,9 @@ results_list <- foreach(
     load(filename)  # brings in `store_out` from the medmix run for this seed
     
     ssize <- sum(store_out$n)
-    cv_y <- unlist(store_out$cv_y)
-    cv_b <- unlist(store_out$cv_b)
-    cv_g <- unlist(store_out$cv_g)
+    cv_y <- unlist(store_out$cv_y_fpc)
+    cv_b <- unlist(store_out$cv_b_fpc)
+    cv_g <- unlist(store_out$cv_g_fpc)
     cv <- cbind(t(cv_y), cv_b, cv_g)
     
     df_cv <- as.data.frame(cv)
@@ -187,7 +185,7 @@ results_list <- foreach(
     )
     
     outfile <- paste0(
-      "OUTPUT/ss_ghs_cont2_seed", seed, "_results_LOCALTEST.Rdata"
+      "OUTPUT/ss_ghs_cont2_fpc_seed", seed, "_results_LOCALTEST.Rdata"
     )
     save(store, file = outfile)
     

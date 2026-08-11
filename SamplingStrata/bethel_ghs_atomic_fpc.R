@@ -103,9 +103,9 @@ results <- foreach(
   load(filename_in)  # brings in `store_out` for this seed
   
   ssize <- sum(store_out$n)
-  cv_y  <- unlist(store_out$cv_y)
-  cv_b  <- unlist(store_out$cv_b)
-  cv_g  <- unlist(store_out$cv_g)
+  cv_y  <- unlist(store_out$cv_y_fpc)
+  cv_b  <- unlist(store_out$cv_b_fpc)
+  cv_g  <- unlist(store_out$cv_g_fpc)
   cv    <- cbind(t(cv_y), cv_b, cv_g)
   strata <- store_out$strata
   
@@ -203,7 +203,7 @@ results <- foreach(
   )
   
   filename <- paste0(
-    "OUTPUT/bethel_ghs_atomic1_", "seed", seed, "_results_LOCALTEST.Rdata"
+    "OUTPUT/bethel_ghs_atomic1_fpc_", "seed", seed, "_results_LOCALTEST.Rdata"
   )
   save(store, file = filename)
   

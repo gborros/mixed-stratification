@@ -32,6 +32,8 @@ results <- foreach(seed = 1:10,
                      ghs$hwl_status <- as.integer(ghs$hwl_status == 5 | ghs$hwl_status == 6)
                      ghs$geotype <- as.integer(ghs$geotype == 1)
                      
+                     ghs <- ghs[,-5]
+                     
                      type1 <- list(numeric = 1, numeric = 2, symm = 3, factor = 4)
                      type_name1 <- c("numeric", "numeric", "symm", "factor")
                      dfs <- list(ghs)
@@ -94,6 +96,9 @@ results <- foreach(seed = 1:10,
                        cv_y = result$best_cv_y,
                        cv_b = result$best_cv_b,
                        cv_g = result$best_cv_g,
+                       cv_y_fpc = result$best_cv_y_fpc,
+                       cv_b_fpc = result$best_cv_b_fpc,
+                       cv_g_fpc = result$best_cv_g_fpc,
                        proc_time = proc_time
                      )
                      
