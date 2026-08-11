@@ -168,10 +168,11 @@ df_sol$strata <- df_sol$LABEL
 cat("\n>> Strata frequency table (from df_sol$strata):\n")
 print(table(df_sol$strata))
 
+vars2 <- c("Y1", "Y2", "Y3", "Y4")
 cat("\n>> Calculating variance / CV diagnostics via calculate_variance()...\n")
 fitness <- calculate_variance(
   df = df_sol, df_sol$strata,
-  vars = vars, n = n, type = data_type, type_name = data_name, seed = seed
+  vars = vars2, n = n, type = data_type, type_name = data_name, seed = seed
 )
 
 cat("\n>> Fitness / CV results:\n")

@@ -9,7 +9,8 @@ library(haven)
 library(cluster)
 library(SamplingStrata)
 
-setwd("C:/Users/01459189/OneDrive/phd/hpc - mixed")
+setwd("C:/Users/01459189/OneDrive/phd/mixed-stratification") ## Update with WD
+source("core_functions/function_calc_variance.R")
 
 # ------------------------ SET YOUR TEST COMBINATION HERE -------------------
 max_clusters <- 15   # <-- upper bound only; KmeansSolution() picks the best <= this. Assumption: 15, adjust as you like.

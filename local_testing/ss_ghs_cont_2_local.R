@@ -176,4 +176,3 @@ nvars <- length(type_name1)
   list(seed = seed, status = "ok", outfile = outfile,
        n_strata_realized = n_strata_realized, time_mins = as.numeric(time_taken))
   
-}
