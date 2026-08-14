@@ -143,8 +143,8 @@ solution <- tryCatch(
     framesamp = frame3,
     nStrata = nstrat,
     suggestions = kmean,
-    iter = 2000,
-    pops = 50,
+    iter = 2,
+    pops = 5,
     elitism_rate = 0.2,
     mut_chance = 0.7
   ),
