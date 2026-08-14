@@ -7,7 +7,7 @@ library(SamplingStrata)
 library(doParallel)
 library(foreach)
 
-setwd("C:/Users/01459189/OneDrive/phd/hpc - mixed")
+#setwd("C:/Users/01459189/OneDrive/phd/hpc - mixed")
 source("core_functions/function_calc_variance.R")
 
 # ------------------------ TEST COMBINATION -------------------

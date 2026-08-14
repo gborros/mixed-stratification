@@ -159,9 +159,10 @@ results_list <- foreach(
     df_sol <- solution$framenew
     df_sol$strata <- df_sol$LABEL
     
+    vars2 <- c("Y1", "Y2", "Y3", "Y4")
     fitness <- calculate_variance(
       df = df_sol, df_sol$strata,
-      vars = vars, n = n, type = data_type, type_name = data_name, seed = seed
+      vars = vars2, n = n, type = data_type, type_name = data_name, seed = seed
     )
     
     # ----------------------- Store Results (single run, this seed) --------------

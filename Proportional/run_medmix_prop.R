@@ -66,8 +66,8 @@ datasets <- c("d_mix1", "d_mix2", "d_mix3", "d_mix4",
 
 dfs <- list(d_mix1, d_mix2, d_mix3, d_mix4, d_mix5, d_mix6)
 
-sample <- rep(500, 6)
-num_strat <- rep(15, 6)
+sample <- rep(750, 6)
+for (num_strat in c(3, 4, 5, 6)) {
 
 type <- list(type1, type2, type3, type4, type5, type6)
 type_name <- list(type_name1, type_name2, type_name3,
@@ -81,7 +81,7 @@ for (dta in 1:length(datasets)) {
   sf <- dfs[[dta]]
   data_type <- type[[dta]]
   data_name <- type_name[[dta]]
-  num_strata <- num_strat[dta]
+  num_strata <- num_strat
   
   vars <- paste0("X", 1:ncol(sf))
   colnames(sf) <- vars
@@ -170,6 +170,8 @@ for (dta in 1:length(datasets)) {
   )
   
   save(store, file = filename)
+}
+
 }
 
 #------------------------ Stop cluster ---------------------------------

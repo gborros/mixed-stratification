@@ -34,7 +34,7 @@ type <- list(type1)
 type_name <- list(type_name1)
 
 for (num_strata in c(3, 4, 5, 6)) {
-ssize = 500
+ssize = 750
 
 for (dta in 1:length(datasets)) {
   vars <- character()

@@ -34,7 +34,7 @@ dfs <- list(d_mix3)
 type <- list(type3)
 type_name <- list(type_name3)
 for (num_strata in c(3, 4, 5, 6)) {
-ssize = 500
+ssize = 750
 
 for (dta in 1:length(datasets)) {
   vars <- character()
