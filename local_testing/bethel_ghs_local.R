@@ -1,9 +1,3 @@
-## SS GHS ATOMIC LOCAL
-## v2: final number of strata is whatever KmeansSolution() suggests, not forced.
-## max_clusters below is only an UPPER BOUND for KmeansSolution's internal search -
-## it is not the final strata count. Everything downstream (prints, filename) now
-## refers to n_strata_realized, the actual outcome, not this cap.
-
 library(dplyr)
 library(haven)
 library(cluster)
@@ -42,6 +36,8 @@ ghs$head_age_cat <- var.bin(ghs$head_age, 15)
 
 ghs$hwl_status <- as.integer(ghs$hwl_status == 5 | ghs$hwl_status == 6) ## wellbeing status 5 or 6
 ghs$geotype <- as.integer(ghs$geotype == 1) ## urban
+
+ghs <- ghs[,-5]
 
 cat("   Post-recode summary:\n")
 print(summary(ghs))

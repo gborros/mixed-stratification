@@ -202,8 +202,6 @@ store <- list(
   used_initial_solution = TRUE
 )
 
-# Filename now uses the REALIZED strata count, not the max_clusters input cap,
-# since that's the number that actually determines the output.
 filename <- paste0(
   "OUTPUT/ss_ghs_cont1_", "seed", seed, "_results_LOCALTEST.Rdata"
 )

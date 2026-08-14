@@ -44,6 +44,8 @@ ghs$head_age_cat <- var.bin(ghs$head_age, 15)
 ghs$hwl_status <- as.integer(ghs$hwl_status == 5 | ghs$hwl_status == 6) ## wellbeing status 5 or 6
 ghs$geotype <- as.integer(ghs$geotype == 1) ## urban
 
+ghs <- ghs[,-5]
+
 cat("   Post-recode summary:\n")
 print(summary(ghs))
 
