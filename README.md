@@ -15,7 +15,7 @@ This repository contains the code and data used to replicate a comparison of str
 |---|---|
 | `medoids_mixed_gasampsi/` | Code used to run the medoids for stratification with the GA allocation method, for each dataset |
 | `Proportional/` | Code used to run the medoids for stratification with proportional allocation |
-| `SamplingStrata/` | Code used to run the SamplingStrata method for each dataset |
+| `SamplingStrata/` | Code used to run the SamplingStrata method for the GHS application |
 
 ---
 
@@ -38,19 +38,49 @@ Key functions used to perform the methods:
 
 ---
 
-## Coefficients of Variation (CVs)
+## Running the Code
 
-- **`cv_extract`** — Extracts the CVs from the results after running the medoids scripts.
-- **`CVs/`** — Contains the CVs corresponding to the minimum design effect from the medoids methods, for input into the SamplingStrata runs.
+### HPC
+
+All code was run on the UCT HPC cluster (Ada). Simulated data results were parallelised across 40 cores to get a sense of variability across 40 runs. Application results were run over 10 runs. To reproduce locally, this code can be minimally edited by adjusting the number of cores and parallel runs (`iter`).
+
+### `local_testing/`
+
+For a quicker, non-parallelised sanity check, `local_testing/` contains scripts that let a user run each method for a single specified seed and inspect the outcome directly, without needing HPC access. This is useful for debugging a method or checking output structure before committing to a full 40-core HPC run.
 
 ---
 
-## Working Folders
+## SamplingStrata Folder
 
-- **`RAW26`** — Once results are run, they should be copied to the RAW26 folder [not uploaded here due to space constraints], where key results are extracted to *WIP26* using the extraction functions in this folder. 
-- **`WIP26`** — Contains extracted results from *RAW26*. 
+`SamplingStrata/` contains the scripts used to run the `SamplingStrata` method for the GHS application, across both the continuous and atomic variants, using different CV inputs. Naming follows `ss_ghs_<method>_<CV input>[_fpc]`, plus a set of Bethel allocation scripts that use MED-GA-derived stratifications and CVs.
+
+| Script | Description |
+|---|---|
+| `ss_ghs_cont_1` | Continuous SamplingStrata method, with manually specified 0.05 CVs as input |
+| `ss_ghs_atomic_1` | Atomic SamplingStrata method, with manually specified 0.05 CVs as input |
+| `ss_ghs_cont_2` | Continuous SamplingStrata method, with MED-GA CVs as input |
+| `ss_ghs_cont_2_fpc` | Continuous SamplingStrata method, with MED-GA (FPC-adjusted) CVs as input |
+| `ss_ghs_atomic_2` | Atomic SamplingStrata method, with MED-GA CVs as input |
+| `ss_ghs_atomic_2_fpc` | Atomic SamplingStrata method, with MED-GA (FPC-adjusted) CVs as input |
+| `bethel_ghs_cont` | Bethel allocation method, using MED-GA stratification and CVs (MED-GA inputs derived from `ss_ghs_cont_1` inputs) |
+| `bethel_ghs_atomic` | Same as `bethel_ghs_cont`, but using atomic-derived inputs |
+| `bethel_ghs_cont_fpc` | Bethel allocation method, using MED-GA stratification and FPC-adjusted CVs (MED-GA inputs derived from `ss_ghs_cont_1` inputs) |
+| `bethel_ghs_atomic_fpc` | Same as `bethel_ghs_cont_fpc`, but using atomic-derived inputs |
+
 ---
 
-## Key Note
+## `medoids_mixed_gasampsi/` Folder
 
-All code was run on the UCT HPC cluster, parallelised across 40 cores to get a sense of variability across 40 runs. To reproduce locally, this code can be minimally edited by adjusting the number of cores and parallel runs (`iter`).
+Contains the scripts used to run the MED-GA method for the GHS application, using strata numbers and/or sample size inputs sourced from the `SamplingStrata` and Bethel runs above.
+
+| Script | Description |
+|---|---|
+| `medmix_ghs_atomic` | MED-GA method, using `ss_ghs_atomic_1` inputs |
+| `medmix_ghs_cont` | MED-GA method, using `ss_ghs_cont_1` inputs |
+| `medmix_ghs_bethel` | MED-GA method, using Bethel sample size inputs and `ss_ghs_cont_1` strata number inputs |
+| `medmix_ghs_bethel_fpc` | MED-GA method, using Bethel sample size inputs (where Bethel was supplied with FPC-adjusted CVs) and `ss_ghs_cont_1` strata number inputs |
+| `medmix_ghs_bethel_atomic` | MED-GA method, using Bethel sample size inputs and `ss_ghs_atomic_1` strata number inputs |
+| `medmix_ghs_bethel_fpc_atomic` | MED-GA method, using Bethel sample size inputs (where Bethel was supplied with FPC-adjusted CVs) and `ss_ghs_atomic_1` strata number inputs |
+| `run_medmix_gasampsiMIX1` – `run_medmix_gasampsiMIX6` | Scripts to run the MED-GA method on the simulated datasets |
+
+---
